@@ -1,7 +1,7 @@
 QUESTÃO 1 (basta rodar heart.py):
-        heart.py:
+    heart.py:
 
-    ATENÇÃO:
+    ATENÇÃO!
 
     A variavel 'time' (tempo de acompanhamento) foi REMOVIDA das features.
     Ela só e conhecida ao final do estudo, nao estando disponivel no momento da decisao clinica. 
@@ -15,16 +15,18 @@ QUESTÃO 1 (basta rodar heart.py):
   - age:               pacientes mais velhos tem pior prognostico
 
 
-        heart_inferencia.py:
-    Recebe dados de um paciente desconhecido (sem 'time')
+    heart_inferencia.py:
+    recebe dados de um paciente desconhecido (sem time)
     e indica a qual grupo ele pertence: SOBREVIVENTE ou OBITO.
     
-    Parametros:
-        modelo: Pipeline treinado (Random Forest)
-        dados_paciente: dict com 11 features 
+
+QUESTÃO 2 - RODAR APENAS (wine.py)
+    código tem verificacao de qual o melhor modelo, mas preferencialmente vai dar random forest.
     
-    Retorna:
-        predicao, probabilidades e analise
+    Foi escolhido como modelos random forest, knn e svm por termos usado em aula (acho que svm vi em um exercício, não sei)
+
+    O arquivo tem um modulo de inferencia embutido com testes para analise.
+
     
 
-QUESTÃO 2 - RODAR APENAS wine.py
+    
