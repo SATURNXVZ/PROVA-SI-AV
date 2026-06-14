@@ -1,0 +1,28 @@
+QUESTÃO 1:
+        heart.py:
+
+    ATENÇÃO:
+
+    A variavel 'time' (tempo de acompanhamento) foi REMOVIDA das features.
+    Ela só e conhecida ao final do estudo, nao estando disponivel no momento da decisao clinica. 
+    Usar 'time' como feature causa data leakage, pois pacientes que
+    morrem precocemente tendem a ter 'time' menor, tornando a variavel uma
+    consequencia do final e nao do processo.
+
+    Interpretacao clinica esperada:
+  - ejection_fraction: fracao de ejecao e um indicador direto da funcao cardiaca
+  - serum_creatinine:  nivel elevado indica disfuncao renal, comum em IC grave
+  - age:               pacientes mais velhos tem pior prognostico
+
+
+        heart_inferencia.py:
+    Recebe dados de um paciente desconhecido (sem 'time')
+    e indica a qual grupo ele pertence: SOBREVIVENTE ou OBITO.
+    
+    Parametros:
+        modelo: Pipeline treinado (Random Forest)
+        dados_paciente: dict com 11 features 
+    
+    Retorna:
+        predicao, probabilidades e analise
+    
