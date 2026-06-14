@@ -1,4 +1,4 @@
-QUESTÃO 1:
+QUESTÃO 1 (basta rodar heart.py):
         heart.py:
 
     ATENÇÃO:
@@ -26,3 +26,5 @@ QUESTÃO 1:
     Retorna:
         predicao, probabilidades e analise
     
+
+QUESTÃO 2 - RODAR APENAS wine.py
