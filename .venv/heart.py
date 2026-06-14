@@ -23,8 +23,8 @@ print("="*80)
 # ============================================================================
 # 1. CARREGAMENTO DOS DADOS
 # ============================================================================
-url = "https://archive.ics.uci.edu/ml/machine-learning-databases/00519/heart_failure_clinical_records_dataset.csv"
-df_heart = pd.read_csv(url)
+base = ".venv\heart_failure_clinical_records_dataset.csv"
+df_heart = pd.read_csv(base)
 
 print("\n1. DOCUMENTAÇÃO DA BASE")
 print("-"*60)
