@@ -15,7 +15,7 @@ warnings.filterwarnings('ignore')
 # ============================================================================
 # 1. CARREGAMENTO
 # ============================================================================
-df = pd.read_csv('black_friday.csv')
+df = pd.read_csv(r"C:\Users\User\Documents\PROVA-SI-AV\retail_black_friday_sales_100k.csv")
 
 print(f"Registros: {len(df)} | Colunas: {df.shape[1]}")
 print(f"Colunas: {list(df.columns)}")
