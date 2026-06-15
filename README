@@ -29,4 +29,14 @@ QUESTÃO 2 - RODAR APENAS (wine.py)
 
     
 
+QUESTÃO 3 - RODAR APENAS (black_friday.py)
+    Levando em conta o pedido na questão, o sistema tem 3 informações:
+      - Categoria do produto (product_category)
+      - Método de pagamento mais provável (payment_method)
+      - Faixa etária mais provável do comprador (age_group)
+    Por isso a criação de 1 random forest pra cada.
+
+  CCCCC
+    
+
     

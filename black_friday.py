@@ -15,7 +15,7 @@ warnings.filterwarnings('ignore')
 # ============================================================================
 # 1. CARREGAMENTO
 # ============================================================================
-df = pd.read_csv('black_friday.csv')
+df = pd.read_csv(r"C:\Users\User\Documents\PROVA-SI-AV\retail_black_friday_sales_100k.csv")
 
 print(f"Registros: {len(df)} | Colunas: {df.shape[1]}")
 print(f"Colunas: {list(df.columns)}")
@@ -25,12 +25,13 @@ print(f"\nValores ausentes:\n{df.isnull().sum()}")
 # 2. PRE-PROCESSAMENTO
 # ============================================================================
 # Remover colunas que nao sao features de contexto de venda
+# Mantemos original_price, que ajuda a diferenciar categorias e valores
 drop_cols = ['transaction_id', 'customer_id', 'product_id', 'purchase_date',
-             'original_price', 'final_price', 'purchase_amount']
+             'final_price', 'purchase_amount']
 df = df.drop(columns=[c for c in drop_cols if c in df.columns])
 
-# Codificar variaveis categoricas de entrada
-cat_features = ['gender', 'city', 'customer_segment']
+# Codificar variaveis categoricas de entrada (incluindo as que serao usadas como feature)
+cat_features = ['gender', 'city', 'customer_segment', 'product_category', 'payment_method']
 le_map = {}
 for col in cat_features:
     if col in df.columns:
@@ -38,13 +39,19 @@ for col in cat_features:
         df[col] = le.fit_transform(df[col].astype(str))
         le_map[col] = le
 
-# Features de entrada (contexto da venda) - exclui os tres alvos
-TARGETS = ['product_category', 'payment_method', 'age_group']
-feature_cols = [c for c in df.columns if c not in TARGETS]
+# Features base (presentes em todos os modelos)
+feature_cols_base = ['gender', 'city', 'customer_segment', 'discount_pct',
+                     'quantity', 'purchase_hour', 'is_weekend', 'is_black_friday',
+                     'original_price']
 
-print(f"\nFeatures usadas ({len(feature_cols)}): {feature_cols}")
+# Conjuntos de features especificos para cada tarefa
+X_cat = df[feature_cols_base]                                          # categoria de produto
+X_pag = df[feature_cols_base + ['product_category']]                   # forma de pagamento
+X_age = df[feature_cols_base + ['product_category', 'payment_method']] # faixa etaria
 
-X = df[feature_cols]
+print(f"\nFeatures usadas para Categoria : {list(X_cat.columns)}")
+print(f"Features usadas para Pagamento  : {list(X_pag.columns)}")
+print(f"Features usadas para Idade      : {list(X_age.columns)}")
 
 # ============================================================================
 # 3. FUNCAO GENERICA DE TREINO E AVALIACAO
@@ -107,11 +114,11 @@ def treinar_avaliar(X, y, nome_alvo):
 
 
 # ============================================================================
-# 4. TREINAR OS TRES CLASSIFICADORES
+# 4. TREINAR OS TRES CLASSIFICADORES (agora com X especifico)
 # ============================================================================
-modelo_cat, le_cat = treinar_avaliar(X, df['product_category'], 'Categoria de Produto')
-modelo_pag, le_pag = treinar_avaliar(X, df['payment_method'],   'Forma de Pagamento')
-modelo_age, le_age = treinar_avaliar(X, df['age_group'],        'Faixa Etaria')
+modelo_cat, le_cat = treinar_avaliar(X_cat, df['product_category'], 'Categoria de Produto')
+modelo_pag, le_pag = treinar_avaliar(X_pag, df['payment_method'],   'Forma de Pagamento')
+modelo_age, le_age = treinar_avaliar(X_age, df['age_group'],        'Faixa Etaria')
 
 
 # ============================================================================
@@ -122,14 +129,10 @@ def inferir(contexto: dict):
     Recebe o contexto de uma venda e retorna as tres previsoes com grau de certeza.
 
     Parametros esperados:
-      gender           : 'Male' / 'Female'
-      city             : ex. 'San Francisco'
-      customer_segment : 'Loyal' / 'New' / 'Regular'
-      discount_pct     : percentual de desconto (ex. 35)
-      quantity         : quantidade comprada (ex. 1)
-      purchase_hour    : hora da compra (0-23)
-      is_weekend       : 0 ou 1
-      is_black_friday  : 0 ou 1
+      gender, city, customer_segment, discount_pct, quantity, purchase_hour,
+      is_weekend, is_black_friday, original_price
+      product_category (opcional, usado para pagamento e idade)
+      payment_method   (opcional, usado para idade)
     """
     row = contexto.copy()
     for col, le in le_map.items():
@@ -139,10 +142,11 @@ def inferir(contexto: dict):
             except ValueError:
                 row[col] = -1
 
-    df_in = pd.DataFrame([row])[feature_cols]
+    df_in = pd.DataFrame([row])
 
-    def prever(modelo, le_alvo, nome):
-        proba  = modelo.predict_proba(df_in)[0]
+    def prever(modelo, le_alvo, nome, feature_list):
+        df_modelo = df_in[feature_list]
+        proba  = modelo.predict_proba(df_modelo)[0]
         idx    = np.argmax(proba)
         classe = le_alvo.classes_[idx]
         conf   = proba[idx]
@@ -158,9 +162,9 @@ def inferir(contexto: dict):
     for k, v in contexto.items():
         print(f"  {k}: {v}")
     print()
-    prever(modelo_cat, le_cat, "Categoria do Produto")
-    prever(modelo_pag, le_pag, "Forma de Pagamento ")
-    prever(modelo_age, le_age, "Faixa Etaria       ")
+    prever(modelo_cat, le_cat, "Categoria do Produto", feature_cols_base)
+    prever(modelo_pag, le_pag, "Forma de Pagamento ", feature_cols_base + ['product_category'])
+    prever(modelo_age, le_age, "Faixa Etaria       ", feature_cols_base + ['product_category', 'payment_method'])
     print()
 
 
@@ -174,20 +178,38 @@ print("="*60)
 # Caso 1: Cliente fiel, sem Black Friday
 inferir({
     'gender': 'Male', 'city': 'San Francisco', 'customer_segment': 'Loyal',
-    'discount_pct': 35, 'quantity': 1,
-    'purchase_hour': 0, 'is_weekend': 0, 'is_black_friday': 0
+    'discount_pct': 35, 'quantity': 1, 'original_price': 80,
+    'purchase_hour': 0, 'is_weekend': 0, 'is_black_friday': 0,
+    'product_category': 'Electronics', 'payment_method': 'Credit Card'
 })
 
 # Caso 2: Cliente novo, Black Friday, hora de pico
 inferir({
     'gender': 'Female', 'city': 'Dallas', 'customer_segment': 'New',
-    'discount_pct': 30, 'quantity': 2,
-    'purchase_hour': 16, 'is_weekend': 0, 'is_black_friday': 1
+    'discount_pct': 30, 'quantity': 2, 'original_price': 120,
+    'purchase_hour': 16, 'is_weekend': 0, 'is_black_friday': 1,
+    'product_category': 'Clothing', 'payment_method': 'Mobile Wallet'
 })
 
 # Caso 3: Fim de semana, grande desconto, multiplos itens
 inferir({
     'gender': 'Female', 'city': 'Chicago', 'customer_segment': 'Regular',
-    'discount_pct': 50, 'quantity': 3,
-    'purchase_hour': 20, 'is_weekend': 1, 'is_black_friday': 1
+    'discount_pct': 50, 'quantity': 3, 'original_price': 150,
+    'purchase_hour': 20, 'is_weekend': 1, 'is_black_friday': 1,
+    'product_category': 'Books', 'payment_method': 'Debit Card'
 })
+
+# ============================================================================
+# 7. SALVAR MODELOS
+# ============================================================================
+import joblib
+import os
+
+joblib.dump(modelo_cat, 'bf_produto.pkl')
+joblib.dump(modelo_pag, 'bf_pagamento.pkl')
+joblib.dump(modelo_age, 'bf_idade.pkl')
+
+print("\nModelos salvos:")
+print(f"  bf_produto.pkl   ({os.path.getsize('bf_produto.pkl')} bytes)")
+print(f"  bf_pagamento.pkl ({os.path.getsize('bf_pagamento.pkl')} bytes)")
+print(f"  bf_idade.pkl     ({os.path.getsize('bf_idade.pkl')} bytes)")
