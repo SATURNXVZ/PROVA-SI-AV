@@ -36,7 +36,18 @@ QUESTÃO 3 - RODAR APENAS (black_friday.py)
       - Faixa etária mais provável do comprador (age_group)
     Por isso a criação de 1 random forest pra cada.
 
-  CCCCC
+    COLUNAS REMOVIDAS E MOIVOS:
+      transaction_id, customer_id, product_id, purchase_date,
+      final_price, purchase_amount
+
+      Id são para identificação, não podem ser usados para padronização, purchase_date, final_price e purchase_amount são redundantes, 
+      são dados que já contém em outas colunas.
+
+      OBSERVAÇÕES:
+        O dataset é sintético e balanceado de forma artificial, o que explica a acurácia baixa.
+        Os modelos (.pkl) não foram versionados, por ser muito grande.
+
+    
     
 
     
